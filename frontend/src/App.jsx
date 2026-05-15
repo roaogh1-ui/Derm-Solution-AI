@@ -185,8 +185,8 @@ const DailyTips = () => {
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null); // 로그인한 유저 정보 저장
-  const [isSignupMode, setIsSignupMode] = useState(false); // 회원가입 모드 전환
+  const [currentUser, setCurrentUser] = useState(null); 
+  const [isSignupMode, setIsSignupMode] = useState(false); 
 
   // 1. 더미 데이터 (초기 회원 목록)
   const [users, setUsers] = useState([
@@ -203,6 +203,7 @@ function App() {
   const [signupId, setSignupId] = useState('');
   const [signupPw, setSignupPw] = useState('');
   const [signupName, setSignupName] = useState('');
+  const [isIdChecked, setIsIdChecked] = useState(false); // ✨ 아이디 중복확인 상태 추가
 
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -210,7 +211,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [displayedMessage, setDisplayedMessage] = useState("");
 
-  // 2. 로그인 처리 (더미 데이터 검증)
+  // 2. 로그인 처리
   const handleLogin = (e) => { 
     if (e) e.preventDefault(); 
     
@@ -237,6 +238,12 @@ function App() {
       return;
     }
 
+    // ✨ 중복확인을 안 했을 경우 차단
+    if (!isIdChecked) {
+      alert("아이디 중복확인을 진행해주세요.");
+      return;
+    }
+
     const isDuplicate = users.some(u => u.id === signupId);
     if (isDuplicate) {
       alert("이미 존재하는 아이디입니다.");
@@ -251,6 +258,7 @@ function App() {
     setSignupId('');
     setSignupPw('');
     setSignupName('');
+    setIsIdChecked(false); // ✨ 폼 초기화 시 중복확인 상태도 리셋
     setIsSignupMode(false);
   };
   
@@ -325,9 +333,23 @@ function App() {
           ) : (
             <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <div style={{ position: 'relative' }}><input type="text" placeholder="이름 (ex: 홍길동)" value={signupName} onChange={(e) => setSignupName(e.target.value)} style={{ width: '100%', padding: '16px 16px 16px 48px', borderRadius: '14px', border: '1px solid #eee', outline: 'none', boxSizing: 'border-box', fontSize: '1rem', backgroundColor: '#fff', color: '#1a1a1a' }} /><User size={20} color="#bbb" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} /></div>
-              <div style={{ position: 'relative' }}><input type="text" placeholder="사용할 아이디" value={signupId} onChange={(e) => setSignupId(e.target.value)} style={{ width: '100%', padding: '16px 16px 16px 48px', borderRadius: '14px', border: '1px solid #eee', outline: 'none', boxSizing: 'border-box', fontSize: '1rem', backgroundColor: '#fff', color: '#1a1a1a' }} /><Target size={20} color="#bbb" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} /></div>
+              
+              {/* ✨ 아이디 입력칸 + 중복확인 버튼 영역 */}
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
+                  <input type="text" placeholder="사용할 아이디" value={signupId} onChange={(e) => { setSignupId(e.target.value); setIsIdChecked(false); }} style={{ width: '100%', padding: '16px 16px 16px 48px', borderRadius: '14px', border: '1px solid #eee', outline: 'none', boxSizing: 'border-box', fontSize: '1rem', backgroundColor: '#fff', color: '#1a1a1a' }} />
+                  <Target size={20} color="#bbb" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
+                </div>
+                <button type="button" onClick={() => {
+                  if(!signupId) { alert("아이디를 입력해주세요."); return; }
+                  if(users.some(u => u.id === signupId)) { alert("이미 사용 중인 아이디입니다."); setIsIdChecked(false); }
+                  else { alert("사용 가능한 아이디입니다."); setIsIdChecked(true); }
+                }} style={{ padding: '0 20px', backgroundColor: isIdChecked ? '#00c73c' : '#eee', color: isIdChecked ? '#fff' : '#555', borderRadius: '14px', border: 'none', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '0.9rem', transition: 'all 0.3s' }}>
+                  {isIdChecked ? '확인완료' : '중복확인'}
+                </button>
+              </div>
+
               <div style={{ position: 'relative' }}>
-                {/* [수정 완료] setSignupPw로 정상 변경! */}
                 <input type={showPw ? "text" : "password"} placeholder="사용할 비밀번호" value={signupPw} onChange={(e) => setSignupPw(e.target.value)} style={{ width: '100%', padding: '16px 48px 16px 48px', borderRadius: '14px', border: '1px solid #eee', outline: 'none', boxSizing: 'border-box', fontSize: '1rem', backgroundColor: '#fff', color: '#1a1a1a' }} />
                 <Lock size={20} color="#bbb" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
                 <button type="button" onClick={() => setShowPw(!showPw)} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}>{showPw ? <EyeOff size={20} color="#bbb" /> : <Eye size={20} color="#bbb" />}</button>
@@ -338,7 +360,7 @@ function App() {
 
           <div style={{ marginTop: '25px', display: 'flex', justifyContent: 'center', gap: '20px', fontSize: '0.9rem', color: '#999' }}>
             {isSignupMode ? (
-              <span style={{ cursor: 'pointer', color: '#ff4d94', fontWeight: 'bold' }} onClick={() => setIsSignupMode(false)}>로그인으로 돌아가기</span>
+              <span style={{ cursor: 'pointer', color: '#ff4d94', fontWeight: 'bold' }} onClick={() => { setIsSignupMode(false); setIsIdChecked(false); }}>로그인으로 돌아가기</span>
             ) : (
               <>
                 <span style={{ cursor: 'pointer' }} onClick={() => setIsSignupMode(true)}>회원가입</span>
@@ -385,6 +407,10 @@ function App() {
               </div>
             ) : (
               <section style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', animation: 'fadeIn 0.5s' }}>
+                <div style={{ padding: '12px 25px', borderRadius: '12px', backgroundColor: '#1a1a1a', color: '#fff', flexShrink: 0, boxShadow: '0 10px 30px rgba(0,0,0,0.1)', marginTop: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px', color: result.status_color || '#fff', fontSize: '0.8rem' }}><AlertCircle size={18} /><strong>AI 맞춤 케어 솔루션</strong></div>
+                  <p style={{ fontSize: '1rem', lineHeight: '1.6', margin: 0, fontWeight: '300', letterSpacing: '-0.3px' }}>{displayedMessage}<span style={{ color: result.status_color || '#fff', fontWeight: 'bold', animation: 'blink 1s step-end infinite' }}>|</span></p>
+                </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', alignItems: 'stretch' }}>
                   <ScoreCard score={result.score} title="분석 결과" result={result} />
                   <ProgressChart result={result} />
@@ -392,10 +418,6 @@ function App() {
                   <AIAdviceCard summary={displayedMessage || "AI가 피부 상태를 실시간 분석 중입니다..."} advice={result.advice || []} />
                   <DailyTips />
                   <ProductRecommendation products={result.products || []} />
-                </div>
-                <div style={{ padding: '12px 25px', borderRadius: '12px', backgroundColor: '#1a1a1a', color: '#fff', flexShrink: 0, boxShadow: '0 10px 30px rgba(0,0,0,0.1)', marginTop: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px', color: result.status_color || '#fff', fontSize: '0.8rem' }}><AlertCircle size={18} /><strong>AI 맞춤 케어 솔루션</strong></div>
-                  <p style={{ fontSize: '1rem', lineHeight: '1.6', margin: 0, fontWeight: '300', letterSpacing: '-0.3px' }}>{displayedMessage}<span style={{ color: result.status_color || '#fff', fontWeight: 'bold', animation: 'blink 1s step-end infinite' }}>|</span></p>
                 </div>
               </section>
             )
